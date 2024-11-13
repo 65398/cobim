@@ -1,30 +1,55 @@
 <?php
 session_start();
-include 'conexion.php'; // Asegúrate de que la conexión a la base de datos esté bien configurada
+include 'conexion.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $cedula = $_POST['cedula'];
-    $dia = $_POST['dia'];
-    $mes = $_POST['mes']; // Esto ahora debería corresponder al mes en letras
-    $anio = $_POST['anio'];
-    $monto = $_POST['monto'];
-    $fecha_pago = $_POST['fecha_pago'];
+    // Verificar si el campo 'fecha_pago' está presente en los datos del formulario
+    if (isset($_POST['fecha_pago'])) {
+        $cedula = $_POST['cedula'];
+        $dia = $_POST['dia'];
+        $mes = $_POST['mes'];
+        $anio = $_POST['anio'];
+        $monto = $_POST['monto'];
+        $fecha_pago = $_POST['fecha_pago']; // Asegurarse de que la fecha de pago está siendo recibida
+        $mes_cancelado = $_POST['mes_cancelado'];
 
-    // Inserta el pago en la base de datos
-    $sql = "INSERT INTO Pagos (cedula, dia, mes, anio, monto, fecha_pago) VALUES (?, ?, ?, ?, ? , ?)";
+        // Establecer el estado de pago como "Cancelado" automáticamente
+        $estado_pago = 'Cancelado';
 
-    // Usar consultas preparadas para evitar inyecciones SQL
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ssssss", $cedula, $dia, $mes, $anio, $monto, $fecha_pago);
+        // Validación básica para asegurarse de que los campos no estén vacíos
+        if (empty($cedula) || empty($monto) || empty($fecha_pago) || empty($mes_cancelado)) {
+            echo "Todos los campos son obligatorios.";
+            exit;
+        }
 
-    if ($stmt->execute()) {
-        echo "Pago registrado correctamente.";
+        // Preparar la consulta para insertar el pago
+        $sql = "INSERT INTO Pagos (cedula, dia, mes, anio, monto, fecha_pago, mes_cancelado, estado_pago) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+        // Preparar la declaración
+        $stmt = $conn->prepare($sql);
+
+        if ($stmt === false) {
+            die("Error al preparar la consulta: " . $conn->error);
+        }
+
+        // Vincular los parámetros
+        $stmt->bind_param("ssssssss", $cedula, $dia, $mes, $anio, $monto, $fecha_pago, $mes_cancelado, $estado_pago);
+
+        // Ejecutar la consulta
+        if ($stmt->execute()) {
+            echo "Pago registrado correctamente.";
+        } else {
+            echo "Error al registrar el pago: " . $stmt->error;
+        }
+
+        // Cerrar la declaración
+        $stmt->close();
     } else {
-        echo "Error: " . $stmt->error;
+        echo "El campo 'fecha_pago' no se ha recibido correctamente.";
     }
-
-    $stmt->close();
 }
 
+// Cerrar la conexión
 $conn->close();
 ?>

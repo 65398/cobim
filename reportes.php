@@ -216,6 +216,9 @@ $result = $conn->query($sql);
                     <label for="anio">Año:</label>
                     <select name="anio" id="anio">
                         <option value="">Todos</option>
+                        <option value="2020" <?php echo ($anio == '2020') ? 'selected' : ''; ?>>2020</option>
+                        <option value="2021" <?php echo ($anio == '2021') ? 'selected' : ''; ?>>2021</option>
+                        <option value="2022" <?php echo ($anio == '2022') ? 'selected' : ''; ?>>2022</option>
                         <option value="2023" <?php echo ($anio == '2023') ? 'selected' : ''; ?>>2023</option>
                         <option value="2024" <?php echo ($anio == '2024') ? 'selected' : ''; ?>>2024</option>
                     </select>

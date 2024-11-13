@@ -62,36 +62,10 @@
             background-color: #005f73; /* Verde */
         }
     </style>
-    <script>
-        function actualizarFecha() {
-            const fechaInput = document.querySelector('input[name="fecha_pago"]');
-            const diaInput = document.querySelector('input[name="dia"]');
-            const mesInput = document.querySelector('input[name="mes"]');
-            const anioInput = document.querySelector('input[name="anio"]');
-
-            // Obtener la fecha seleccionada en formato UTC
-            const fechaSeleccionada = new Date(fechaInput.value + "T00:00:00Z");
-            const dia = fechaSeleccionada.getUTCDate(); // Obtiene el día correctamente
-            const mes = fechaSeleccionada.getUTCMonth(); // Los meses comienzan desde 0
-            const anio = fechaSeleccionada.getUTCFullYear();
-
-            // Convertir el número del mes a texto
-            const meses = [
-                "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-                "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
-            ];
-
-            // Autocompletar los campos de día, mes y año
-            diaInput.value = dia; // Este ahora debería mostrar correctamente el día
-            mesInput.value = meses[mes]; // Usar el array para obtener el nombre del mes
-            anioInput.value = anio;
-        }
-    </script>
 </head>
 <body>
     <nav>
-
-        <a href="visualizar_pagos.php">Visualizar Pagos</a>
+        <a href="reportes.php">Ver Reporte de Pagos</a>
         <a href="login.php">Cerrar Sesión</a>
     </nav>
     <h1>Registro de Pagos</h1>
@@ -99,22 +73,44 @@
         <label for="cedula">Cédula:</label>
         <input type="text" name="cedula" required>
 
-        <label for="fecha_pago">Fecha de Pago:</label>
-        <input type="date" name="fecha_pago" onchange="actualizarFecha()" required>
+        <!-- Campos ocultos para la fecha actual -->
+        <input type="hidden" name="dia" id="dia">
+        <input type="hidden" name="mes" id="mes">
+        <input type="hidden" name="anio" id="anio">
+        <input type="hidden" name="fecha_pago" id="fecha_pago"> <!-- Campo oculto para la fecha de pago -->
 
-        <label for="dia">Día:</label>
-        <input type="text" name="dia" readonly>
-
-        <label for="mes">Mes:</label>
-        <input type="text" name="mes" readonly>
-
-        <label for="anio">Año:</label>
-        <input type="text" name="anio" readonly>
+        <label for="mes_cancelado">Mes que se está cancelando:</label>
+        <select name="mes_cancelado" required>
+            <option value="Enero">Enero</option>
+            <option value="Febrero">Febrero</option>
+            <option value="Marzo">Marzo</option>
+            <option value="Abril">Abril</option>
+            <option value="Mayo">Mayo</option>
+            <option value="Junio">Junio</option>
+            <option value="Julio">Julio</option>
+            <option value="Agosto">Agosto</option>
+            <option value="Septiembre">Septiembre</option>
+            <option value="Octubre">Octubre</option>
+            <option value="Noviembre">Noviembre</option>
+            <option value="Diciembre">Diciembre</option>
+        </select>
 
         <label for="monto">Monto:</label>
         <input type="number" name="monto" required>
 
         <button type="submit">Registrar Pago</button>
     </form>
+
+    <script>
+        // Establecer automáticamente la fecha actual en los campos ocultos
+        const fechaActual = new Date();
+        document.getElementById('dia').value = fechaActual.getDate();
+        document.getElementById('mes').value = fechaActual.getMonth() + 1; // Mes comienza en 0
+        document.getElementById('anio').value = fechaActual.getFullYear();
+        document.getElementById('fecha_pago').value = fechaActual.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+
+        // Verificar que la fecha se esté configurando correctamente en el campo oculto
+        console.log("Fecha de pago:", document.getElementById('fecha_pago').value);
+    </script>
 </body>
 </html>

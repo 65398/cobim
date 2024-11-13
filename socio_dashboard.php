@@ -20,26 +20,32 @@ $result = $stmt->get_result();
 $socio = $result->fetch_assoc();
 $nombre_socio = $socio['nombres'];
 
-// Configurar los meses para mostrar en la tabla
-$meses = [
-    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
-];
-
-// Obtener el historial de pagos del socio
-$sqlPagos = "SELECT mes, anio FROM Pagos WHERE cedula = ?";
+// Obtener el historial de pagos del socio con detalles
+$sqlPagos = "SELECT fecha_pago, mes_cancelado, monto, estado_pago, anio, mes 
+             FROM Pagos 
+             WHERE cedula = ? ORDER BY anio DESC, mes DESC";
 $stmtPagos = $conn->prepare($sqlPagos);
+
+// Verificar si la consulta se preparó correctamente
+if ($stmtPagos === false) {
+    die('Error al preparar la consulta: ' . $conn->error);
+}
+
 $stmtPagos->bind_param("s", $cedula);
 $stmtPagos->execute();
 $resultPagos = $stmtPagos->get_result();
 
 $pagosRealizados = [];
 while ($row = $resultPagos->fetch_assoc()) {
-    $pagosRealizados[$row['anio']][$row['mes']] = 'Cancelado';
+    $pagosRealizados[] = $row;
 }
 
 // Obtener el año actual para mostrar el historial del año actual
 $anioActual = date('Y');
+$meses = [
+    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+];
 ?>
 
 <!DOCTYPE html>
@@ -52,7 +58,7 @@ $anioActual = date('Y');
         .navbar {
             display: flex;
             justify-content: flex-end;
-            background-color: #003366; /* Azul oscuro */
+            background-color: #00986c; /* Verde luminoso */
             padding: 20px;
             color: white;
         }
@@ -63,42 +69,51 @@ $anioActual = date('Y');
             font-weight: bold;
         }
         .navbar a:hover {
-            text-decoration: underline;
+            color: #000000; /* Amarillo para resaltar */
         }
 
         /* Estilos de contenido */
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f2f2f2;
-            color: #333;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: rgba(92, 92, 92, 0.8); /* Gris oscuro con transparencia */
+            color: #FFFF; /* Blanco grisáceo */
             margin: 0;
             padding: 20px;
         }
         h1 {
-            color: #003366; /* Azul oscuro */
-            font-size: 20px;
+            color: #FFFF; /* Blanco grisáceo */
+            font-size: 26px;
         }
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
+            background-color: #8a8a8a; /* Azul oscuro */
+            color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         }
         th, td {
-            padding: 10px;
-            border: 1px solid #ccc;
+            padding: 12px;
+            border: 1px solid #616161; /* Gris más claro */
             text-align: center;
         }
         th {
-            background-color: #003366;
+            background-color: #00986c; /* Verde luminoso */
             color: white;
         }
         .estado-pendiente {
-            color: red;
+            color: #FF5252; /* Rojo claro */
             font-weight: bold;
         }
         .estado-cancelado {
-            color: green;
+            color: #76FF03; /* Verde más tenue */
             font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #616161; /* Gris más claro */
+        }
+        tr:hover {
+            background-color: #757575; /* Resalta con un gris más claro */
         }
     </style>
 </head>
@@ -112,18 +127,23 @@ $anioActual = date('Y');
 
     <table>
         <tr>
-            <th>Mes</th>
-            <th>Año</th>
+            <th>Fecha de Pago</th>
+            <th>Mes Cancelado</th>
             <th>Estado</th>
+            <th>Valor Cancelado</th>
         </tr>
         <?php
-        foreach ($meses as $mesNombre) {
-            // Verificar si el pago se realizó para el mes actual y año actual
-            $estadoPago = isset($pagosRealizados[$anioActual][$mesNombre]) ? 'Cancelado' : 'Pendiente';
+        // Mostrar el historial de pagos
+        foreach ($pagosRealizados as $pago) {
+            $fechaPago = date("d-m-Y", strtotime($pago['fecha_pago']));
+            $estadoPago = $pago['estado_pago'] == 'Cancelado' ? 'Cancelado' : 'Pendiente';
+            $estadoClass = strtolower($estadoPago);
+            
             echo "<tr>";
-            echo "<td>{$mesNombre}</td>";
-            echo "<td>{$anioActual}</td>";
-            echo "<td class='estado-" . strtolower($estadoPago) . "'>{$estadoPago}</td>";
+            echo "<td>{$fechaPago}</td>";
+            echo "<td>{$pago['mes_cancelado']}</td>";
+            echo "<td class='estado-{$estadoClass}'>{$estadoPago}</td>";
+            echo "<td>{$pago['monto']}</td>";
             echo "</tr>";
         }
         ?>
